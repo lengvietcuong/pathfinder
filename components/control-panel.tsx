@@ -3,7 +3,6 @@ import UploadButton from "./upload-button";
 import DrawButtons from "./draw-buttons";
 import DelaySelection from "./delay-selection";
 import AlgorithmSelection from "./algorithm-selection";
-import { parseGrid } from "@/gridFunctions";
 import { HiOutlineSparkles as SparklesIcon } from "react-icons/hi";
 import { PiPlayBold as PlayIcon } from "react-icons/pi";
 import { Algorithm, CellType, Delay } from "@/types";
