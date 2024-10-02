@@ -9,7 +9,7 @@ export enum Algorithm {
 
 export enum Delay {
   Instant = 0,
-  Fast = 1,
+  Fast = 15,
   Normal = 50,
   Slow = 100,
 }
