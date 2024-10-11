@@ -1,6 +1,11 @@
 import { CellCoordinates, CellType, DIRECTION_TO_OFFSET } from "./types";
 import { shuffle } from "fast-shuffle";
 
+export function getCoordinates(input: string): number[] {
+  const cleanedString = input.trim().replace(/[()\[\]\s]/g, "");
+  return cleanedString.split(",").map(Number);
+}
+
 export function createEmptyGrid(
   numRows: number,
   numCols: number
@@ -57,23 +62,14 @@ export function createRandomGrid(numRows: number, numCols: number) {
 export function parseGrid(input: string): CellType[][] {
   const lines = input.trim().split("\n");
 
-  const [numRows, numCols] = lines[0]
-    .replace("[", "")
-    .replace("]", "")
-    .split(",")
-    .map(Number);
+  const [numRows, numCols] = getCoordinates(lines[0]);
 
   // Initialize the grid with Unexplored cells
   const grid: CellType[][] = Array.from({ length: numRows }, () =>
     Array(numCols).fill(CellType.Unexplored)
   );
 
-  // Parse start coordinates and mark the start cell
-  const [startCol, startRow] = lines[1]
-    .replace("(", "")
-    .replace(")", "")
-    .split(",")
-    .map(Number);
+  const [startCol, startRow] = getCoordinates(lines[1]);
   grid[startRow][startCol] = CellType.Start;
 
   // Parse and mark the goal cells
@@ -96,11 +92,7 @@ export function parseGrid(input: string): CellType[][] {
 function parseGoals(goalsString: string): CellCoordinates[] {
   const goals: CellCoordinates[] = [];
   goalsString.split(" | ").forEach((goalString) => {
-    const [col, row] = goalString
-      .replace("(", "")
-      .replace(")", "")
-      .split(",")
-      .map(Number);
+    const [col, row] = getCoordinates(goalString);
     goals.push({ row, col });
   });
   return goals;
@@ -108,11 +100,7 @@ function parseGoals(goalsString: string): CellCoordinates[] {
 
 function parseWall(wallString: string): CellCoordinates[] {
   const walls: CellCoordinates[] = [];
-  const [topLeftCol, topLeftRow, width, height] = wallString
-    .replace("(", "")
-    .replace(")", "")
-    .split(",")
-    .map(Number);
+  const [topLeftCol, topLeftRow, width, height] = getCoordinates(wallString);
 
   for (let dCol = 0; dCol < width; dCol++) {
     for (let dRow = 0; dRow < height; dRow++) {
