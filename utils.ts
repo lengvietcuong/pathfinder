@@ -41,15 +41,14 @@ export function nearestGoal(cell: CellCoordinates, goals: CellCoordinates[]) {
 }
 
 export function calculateAngle(cell: CellCoordinates, goal: CellCoordinates) {
-  if (cell.row === goal.row && cell.col === goal.col) return 0;
+  if (cell.row === goal.row || cell.col === goal.col) return 0;
 
   const dRow = Math.abs(goal.row - cell.row);
   const dCol = Math.abs(goal.col - cell.col);
-  const shortEdge = Math.min(dRow, dCol);
-  const longEdge = Math.max(dRow, dCol);
-  const angle = Math.atan(shortEdge / longEdge);
+  const angleA = Math.atan(dCol / dRow);
+  const angleB = Math.atan(dRow / dCol);
 
-  return angle;
+  return Math.min(angleA, angleB);
 }
 
 export function getDirection(offset: Offset): Direction {
