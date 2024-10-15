@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PiUploadSimpleBold as UploadIcon } from "react-icons/pi";
 
 interface UploadButtonProps {
-  onFileUpload?: (fileContent: string) => void;
+  onFileUpload?: (fileContent: string) => void; // Callback for file upload
   className?: string;
   disabled?: boolean;
 }
@@ -15,16 +15,13 @@ export default function UploadButton({
   disabled,
   onFileUpload,
 }: UploadButtonProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null); // Ref to access the hidden input
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]; // Get selected file
     if (file && onFileUpload) {
       const reader = new FileReader();
-      reader.onload = () => {
-        const content = reader.result as string;
-        onFileUpload(content);
-      };
+      reader.onload = () => onFileUpload(reader.result as string); // Pass file content to callback
       reader.readAsText(file);
     }
   }
@@ -33,7 +30,7 @@ export default function UploadButton({
     <>
       <Button
         variant="outline"
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => fileInputRef.current?.click()} // Trigger file input click
         className={className}
         disabled={disabled}
       >
@@ -45,7 +42,7 @@ export default function UploadButton({
         ref={fileInputRef}
         accept=".txt"
         className="hidden"
-        onChange={handleFileChange}
+        onChange={handleFileChange} // Handle file selection
       />
     </>
   );

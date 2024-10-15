@@ -19,6 +19,7 @@ import {
 } from "@/utils";
 import { Queue, MinPriorityQueue } from "data-structure-typed";
 
+// Map of algorithm names to their corresponding functions
 const ALGORITHMS = {
   [Algorithm.DepthFirstSearch]: depthFirstSearch,
   [Algorithm.BreadthFirstSearch]: breadthFirstSearch,
@@ -28,10 +29,12 @@ const ALGORITHMS = {
   [Algorithm.StraightLineAStar]: straightLineAStar,
 };
 
+// Main function to find path using the specified algorithm
 export function findPath(grid: CellType[][], algorithm: Algorithm) {
   return ALGORITHMS[algorithm](grid);
 }
 
+// Helper function to get valid moves from a given cell
 function getValidMoves(
   source: CellCoordinates,
   grid: CellType[][],
@@ -55,6 +58,7 @@ function getValidMoves(
   return validMoves;
 }
 
+// Depth-First Search algorithm
 function* depthFirstSearch(grid: CellType[][]) {
   const { start } = findStartAndGoals(grid);
   const stack = [
@@ -85,6 +89,7 @@ function* depthFirstSearch(grid: CellType[][]) {
   throw new Error("Could not find a path to the goal");
 }
 
+// Breadth-First Search algorithm
 function* breadthFirstSearch(grid: CellType[][]) {
   const { start } = findStartAndGoals(grid);
   const queue = new Queue<{
@@ -121,6 +126,7 @@ function* breadthFirstSearch(grid: CellType[][]) {
   throw new Error("Could not find a path to the goal");
 }
 
+// Greedy Best-First Search algorithm
 function* greedyBestFirstSearch(grid: CellType[][]) {
   const { start, goals } = findStartAndGoals(grid);
   const heap = new MinPriorityQueue<Move>([], {
@@ -160,6 +166,7 @@ function* greedyBestFirstSearch(grid: CellType[][]) {
   throw new Error("Could not find a path to the goal");
 }
 
+// A* Search algorithm
 function* aStar(grid: CellType[][]) {
   const { start, goals } = findStartAndGoals(grid);
   const heap = new MinPriorityQueue<Move>([], {
@@ -212,9 +219,8 @@ function* aStar(grid: CellType[][]) {
   throw new Error("Could not find a path to the goal");
 }
 
+// Open Search algorithm (prioritizes cells with fewer surrounding walls)
 function* openSearch(grid: CellType[][]) {
-  // This function uses a heap to store the next cells to explore
-  // The priority of each cell is determined by the number of walls surrounding it
   const { start } = findStartAndGoals(grid);
   const heap = new MinPriorityQueue<Move>([], {
     comparator: compareMoves,
@@ -254,6 +260,7 @@ function* openSearch(grid: CellType[][]) {
   throw new Error("Could not find a path to the goal");
 }
 
+// Straight Line A* algorithm (considers angle to goal in heuristic)
 function* straightLineAStar(grid: CellType[][]) {
   const { start, goals } = findStartAndGoals(grid);
   const heap = new MinPriorityQueue<Move>([], {

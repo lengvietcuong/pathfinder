@@ -27,6 +27,7 @@ export default function Visualizer({
 }: {
   initialGrid?: CellType[][];
 }) {
+  // State declarations for grid, algorithm, visualization progress, and user interactions
   const [grid, setGrid] = useState<CellType[][]>(initialGrid);
   const [algorithm, setAlgorithm] = useState<Algorithm>(Algorithm.AStar);
   const [numCellsExplored, setNumCellsExplored] = useState(0);
@@ -38,6 +39,7 @@ export default function Visualizer({
   const delayBetweenSteps = useRef(Delay.Fast);
   const { toast } = useToast();
 
+  // Main function to run the pathfinding visualization
   async function visualize() {
     resetResults();
     setDrawType(null);
@@ -67,11 +69,12 @@ export default function Visualizer({
       traceback(path);
     } catch (error) {
       // An error is raised if no path is found
-      // If pathLength is still 0 after the algorithm finishes, "Not fonud" is displayed in the Result component
+      // If pathLength is still 0 after the algorithm finishes, "Not found" is displayed in the Result component
     }
     setIsVisualizing(false);
   }
 
+  // Helper functions for grid manipulation and visualization
   function validateGrid(grid: CellType[][]) {
     try {
       findStartAndGoals(grid);
@@ -135,6 +138,7 @@ export default function Visualizer({
     setPath(path);
   }
 
+  // Functions for grid manipulation (randomize, clear, load)
   function randomizeGrid() {
     setGrid(createRandomGrid(GRID_ROWS, GRID_COLS));
     resetResults();
@@ -159,6 +163,7 @@ export default function Visualizer({
     }
   }
 
+  // Functions to reset visualization state
   function resetResults() {
     setNumCellsExplored(0);
     setPath(new Map());
@@ -169,6 +174,7 @@ export default function Visualizer({
     resetResults();
   }
 
+  // Functions to handle user interactions (drawing on the grid)
   function handleDraw(row: number, col: number) {
     if (drawType === null) return;
 
@@ -208,6 +214,7 @@ export default function Visualizer({
     resetVisualizaton();
   }
 
+  // Render the Visualizer component
   return (
     <div className="flex lg:flex-row flex-col-reverse gap-6 mx-auto">
       <Grid

@@ -7,6 +7,7 @@ import { HiOutlineSparkles as SparklesIcon } from "react-icons/hi";
 import { PiPlayBold as PlayIcon } from "react-icons/pi";
 import { Algorithm, CellType, Delay } from "@/types";
 
+// Define props for the ControlPanel component
 interface ControlPanelProps {
   randomizeGrid: () => void;
   clearGrid: () => void;
@@ -42,6 +43,7 @@ export default function Component({
 }: ControlPanelProps) {
   return (
     <div className="border bg-card py-4 px-6 rounded-lg min-w-80">
+      {/* Grid setup section */}
       <h2
         className={`mb-3 md:text-lg font-semibold ${
           isVisualizing ? "text-muted-foreground" : ""
@@ -50,6 +52,7 @@ export default function Component({
         Setup grid
       </h2>
       <div className="flex flex-col sm:flex-row gap-2.5 lg:flex-col">
+        {/* Buttons for grid manipulation */}
         <Button
           className="flex-1"
           onClick={randomizeGrid}
@@ -74,6 +77,7 @@ export default function Component({
         />
       </div>
 
+      {/* Algorithm execution section */}
       <h2
         className="lg:mt-8 mt-6 mb-3 md:text-lg font-semibold"
       >
@@ -96,6 +100,7 @@ export default function Component({
         </Button>
       </div>
 
+      {/* Display results if available */}
       {numCellsExplored > 0 && (
         <Result
           numCellsExplored={numCellsExplored}
@@ -107,6 +112,7 @@ export default function Component({
   );
 }
 
+// Component to display algorithm results
 interface ResultProps {
   numCellsExplored: number;
   pathLength: number;

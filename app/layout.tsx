@@ -3,6 +3,7 @@ import { Inter, Roboto_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css";
 
+// Define custom fonts
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
@@ -28,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${robotomono.variable} dark grid place-items-center h-svh`}
+        className={`${inter.variable} ${robotomono.variable} grid place-items-center h-svh`}
       >
         {children}
         <Toaster />

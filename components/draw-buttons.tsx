@@ -14,6 +14,7 @@ import { PiNoteBlankBold as BlankIcon } from "react-icons/pi";
 import { CellType } from "@/types";
 import { cn } from "@/lib/utils";
 
+// Interface for individual DrawButton props
 interface DrawButtonProps {
   isActive: boolean;
   onClick: () => void;
@@ -22,6 +23,7 @@ interface DrawButtonProps {
   tooltip: string;
 }
 
+// DrawButton component: Renders a single button with tooltip
 function DrawButton({
   isActive,
   onClick,
@@ -55,6 +57,7 @@ function DrawButton({
   );
 }
 
+// Interface for DrawButtons component props
 interface DrawButtonsProps {
   className?: string;
   drawType: CellType | null;
@@ -64,6 +67,7 @@ interface DrawButtonsProps {
   disabled: boolean;
 }
 
+// Main DrawButtons component: Renders a set of drawing tool buttons
 export default function DrawButtons({
   className,
   drawType,
@@ -72,6 +76,7 @@ export default function DrawButtons({
   resetVisualization,
   disabled,
 }: DrawButtonsProps) {
+  // Handler for selecting a draw type
   function handleSelectDrawType(type: CellType) {
     resetVisualization();
     setDrawType(drawType === type ? null : type);
@@ -79,6 +84,7 @@ export default function DrawButtons({
 
   return (
     <div className={cn("flex gap-1.5", className)}>
+      {/* Start point button */}
       <DrawButton
         isActive={drawType === CellType.Start}
         onClick={() => handleSelectDrawType(CellType.Start)}
@@ -86,6 +92,7 @@ export default function DrawButtons({
         icon={<LocationIcon className="size-4" />}
         tooltip="Set start"
       />
+      {/* Goal point button */}
       <DrawButton
         isActive={drawType === CellType.Goal}
         onClick={() => handleSelectDrawType(CellType.Goal)}
@@ -93,6 +100,7 @@ export default function DrawButtons({
         icon={<FlagIcon className="size-4" />}
         tooltip="Set goal"
       />
+      {/* Wall drawing button */}
       <DrawButton
         isActive={drawType === CellType.Wall}
         onClick={() => handleSelectDrawType(CellType.Wall)}
@@ -100,6 +108,7 @@ export default function DrawButtons({
         icon={<WallIcon className="size-4" />}
         tooltip="Draw wall"
       />
+      {/* Eraser button */}
       <DrawButton
         isActive={drawType === CellType.Unexplored}
         onClick={() => handleSelectDrawType(CellType.Unexplored)}
@@ -107,6 +116,7 @@ export default function DrawButtons({
         icon={<EraserIcon className="size-4" />}
         tooltip="Erase"
       />
+      {/* Clear grid button */}
       <DrawButton
         isActive={false}
         onClick={() => {

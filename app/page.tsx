@@ -2,6 +2,7 @@ import Visualizer from "@/components/visualizer";
 import { GRID_ROWS, GRID_COLS } from "@/constants";
 import { createRandomGrid } from "@/gridFunctions";
 
+// Ensure a new random grid is generated on each page load
 export const dynamic = "force-dynamic";
 
 export default function Home() {
