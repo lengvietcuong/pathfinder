@@ -18,7 +18,7 @@ import {
   findStartAndGoals,
   resetVisualization,
 } from "@/gridFunctions";
-import { delay, stringToCell } from "@/utils";
+import { cellToString, delay, stringToCell } from "@/utils";
 import { findPath } from "@/algorithms";
 import ControlPanel from "./control-panel";
 
@@ -30,7 +30,7 @@ export default function Visualizer({
   // State declarations for grid, algorithm, visualization progress, and user interactions
   const [grid, setGrid] = useState<CellType[][]>(initialGrid);
   const [algorithm, setAlgorithm] = useState<Algorithm>(Algorithm.AStar);
-  const [numCellsExplored, setNumCellsExplored] = useState(0);
+  const [nodesCreated, setNodesCreated] = useState<Set<string>>(new Set());
   const [path, setPath] = useState(new Map());
 
   const [drawType, setDrawType] = useState<CellType | null>(null);
@@ -103,6 +103,11 @@ export default function Visualizer({
       }
       return newGrid;
     });
+    setNodesCreated((previousNodes) =>{
+      const newNodes = new Set(previousNodes);
+      cells.forEach((cell) => newNodes.add(cellToString(cell)));
+      return newNodes;
+    });
   }
 
   function exploreCell(cell: CellCoordinates) {
@@ -117,8 +122,11 @@ export default function Visualizer({
       }
       return newGrid;
     });
-
-    setNumCellsExplored((prev) => prev + 1);
+    setNodesCreated((previousNodes) => {
+      const newNodes = new Set(previousNodes);
+      newNodes.add(cellToString(cell));
+      return newNodes;
+    });
   }
 
   function traceback(path: Map<string, Direction>) {
@@ -165,7 +173,7 @@ export default function Visualizer({
 
   // Functions to reset visualization state
   function resetResults() {
-    setNumCellsExplored(0);
+    setNodesCreated(new Set());
     setPath(new Map());
   }
 
@@ -238,7 +246,7 @@ export default function Visualizer({
         visualize={visualize}
         isVisualizing={isVisualizing}
         resetVisualization={resetVisualizaton}
-        numCellsExplored={numCellsExplored}
+        numNodesCreated={nodesCreated.size}
         pathLength={path.size}
       />
     </div>

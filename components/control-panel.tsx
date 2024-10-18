@@ -21,7 +21,7 @@ interface ControlPanelProps {
   visualize: () => void;
   isVisualizing: boolean;
   resetVisualization: () => void;
-  numCellsExplored: number;
+  numNodesCreated: number;
   pathLength: number;
 }
 
@@ -38,7 +38,7 @@ export default function Component({
   visualize,
   isVisualizing,
   resetVisualization,
-  numCellsExplored,
+  numNodesCreated,
   pathLength,
 }: ControlPanelProps) {
   return (
@@ -101,9 +101,9 @@ export default function Component({
       </div>
 
       {/* Display results if available */}
-      {numCellsExplored > 0 && (
+      {numNodesCreated > 0 && (
         <Result
-          numCellsExplored={numCellsExplored}
+          numNodesCreated={numNodesCreated}
           pathLength={pathLength}
           isVisualizing={isVisualizing}
         />
@@ -114,12 +114,12 @@ export default function Component({
 
 // Component to display algorithm results
 interface ResultProps {
-  numCellsExplored: number;
+  numNodesCreated: number;
   pathLength: number;
   isVisualizing: boolean;
 }
 
-function Result({ numCellsExplored, pathLength, isVisualizing }: ResultProps) {
+function Result({ numNodesCreated, pathLength, isVisualizing }: ResultProps) {
   return (
     <>
       <h2 className="lg:mt-8 mt-6 mb-3 md:text-lg font-semibold">Result</h2>
@@ -128,7 +128,7 @@ function Result({ numCellsExplored, pathLength, isVisualizing }: ResultProps) {
           <h3 className="text-sm font-medium text-muted-foreground">
             Cells explored
           </h3>
-          <p className="mt-0.5 text-xl font-medium">{numCellsExplored}</p>
+          <p className="mt-0.5 text-xl font-medium">{numNodesCreated}</p>
         </div>
         <div className="flex-1">
           {!isVisualizing && (
