@@ -160,6 +160,16 @@ export default function Visualizer({
   function loadGrid(fileContents: string) {
     try {
       const grid = parseGrid(fileContents);
+      const numRows = grid.length;
+      const numCols = grid[0].length;
+      if (numRows > 50 || numCols > 50) {
+        toast({
+          title: "Grid too large",
+          variant: "destructive",
+          description: "Please input at most a 50x50 grid",
+        });
+        return;
+      }
       setGrid(grid);
       resetResults();
     } catch (error) {
