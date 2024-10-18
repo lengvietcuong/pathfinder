@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import UploadButton from "./upload-button";
 import DrawButtons from "./draw-buttons";
 import DelaySelection from "./delay-selection";
@@ -21,6 +23,8 @@ interface ControlPanelProps {
   visualize: () => void;
   isVisualizing: boolean;
   resetVisualization: () => void;
+  findAllGoals: boolean;
+  setFindAllGoals: (findAllGoals: boolean) => void;
   numNodesCreated: number;
   pathLength: number;
 }
@@ -38,6 +42,8 @@ export default function Component({
   visualize,
   isVisualizing,
   resetVisualization,
+  findAllGoals,
+  setFindAllGoals,
   numNodesCreated,
   pathLength,
 }: ControlPanelProps) {
@@ -78,21 +84,38 @@ export default function Component({
       </div>
 
       {/* Algorithm execution section */}
-      <h2
-        className="lg:mt-8 mt-6 mb-3 md:text-lg font-semibold"
-      >
+      <h2 className="lg:mt-8 mt-6 mb-3 md:text-lg font-semibold">
         Run algorithm
       </h2>
-      <DelaySelection
-        delay={delay}
-        onDelayChange={onDelayChange}
-      />
-      <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 mt-2.5">
+      <div className="flex items-center lg:flex-col gap-2.5">
         <AlgorithmSelection
           className="flex-1"
           disabled={isVisualizing}
           algorithm={algorithm}
           onAlgorithmChange={onAlgorithmChange}
+        />
+        <div
+          className={`flex-1 lg:flex-initial lg:w-full flex items-center justify-between border rounded-md px-3 py-2 ${
+            isVisualizing ? "opacity-50" : ""
+          }`}
+        >
+          <Label htmlFor="find-all-goals">Find all goals</Label>
+          <Switch
+            id="find-all-goals"
+            checked={findAllGoals}
+            onCheckedChange={(checked: boolean) => {
+              resetVisualization();
+              setFindAllGoals(checked);
+            }}
+            disabled={isVisualizing}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 mt-2.5">
+        <DelaySelection
+          delay={delay}
+          onDelayChange={onDelayChange}
+          className="flex-1 lg:flex-initial lg:w-full"
         />
         <Button onClick={visualize} disabled={isVisualizing} className="flex-1">
           <PlayIcon className="mr-2 size-4" />

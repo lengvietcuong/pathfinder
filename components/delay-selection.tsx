@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { Delay } from "@/types"; // Enum for delay values
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface DelaySelectionProps {
   delay: Delay; // Initial delay value
   onDelayChange: (delay: Delay) => void; // Callback when delay changes
+  className?: string;
 }
 
 // Labels for each delay option
@@ -20,6 +22,7 @@ const LABELS: Record<Delay, string> = {
 export default function DelaySelection({
   delay,
   onDelayChange,
+  className,
 }: DelaySelectionProps) {
   const [selectedDelay, setSelectedDelay] = useState(delay); // Local state for selected delay
 
@@ -34,7 +37,7 @@ export default function DelaySelection({
         }}
         variant="ghost"
         size="sm"
-        className={`flex-1 text-xs ${delay === selectedDelay ? "bg-muted" : ""}`} // Highlight selected button
+        className={`flex-1 text-xs h-7 ${delay === selectedDelay ? "bg-muted" : ""}`} // Highlight selected button
       >
         {LABELS[delay]}
       </Button>
@@ -42,7 +45,7 @@ export default function DelaySelection({
   }
 
   return (
-    <div className="flex gap-1">
+    <div className={cn("flex gap-1 px-3 py-1.5 rounded-md border", className)}>
       {renderDelayButton(Delay.Slow)}
       {renderDelayButton(Delay.Normal)}
       {renderDelayButton(Delay.Fast)}

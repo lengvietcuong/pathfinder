@@ -69,23 +69,47 @@ export function reconstructPath(
   goal: CellCoordinates,
   cameFrom: Map<string, CellCoordinates>
 ) {
-  const path = new Map();
+  const path: CellCoordinates[] = [];
   let current = goal;
   while (current.row !== start.row || current.col !== start.col) {
     const currentString = cellToString(current);
     const previous = cameFrom.get(currentString)!;
-    const previousString = cellToString(previous);
-    
-    // Calculate offset between current and previous cells to determine the direction
-    const offset = {
-      dRow: current.row - previous.row,
-      dCol: current.col - previous.col,
-    };
-    const direction = getDirection(offset);
-    
-    // Map the previous cell's string to the direction to travel
-    path.set(previousString, direction);
+
+    path.push(current);
     current = previous;
   }
+  path.push(start);
+  path.reverse();
   return path;
+}
+
+// Get the direction to move from each cell (which is displayed if finding a single goal)
+export function getDirections(path: CellCoordinates[]): Map<string, Direction> {
+  const directions = new Map();
+  for (let i = 0; i < path.length - 1; i++) {
+    const currentCell = path[i];
+    const nextCell = path[i + 1];
+    const offset = {
+      dRow: nextCell.row - currentCell.row,
+      dCol: nextCell.col - currentCell.col,
+    };
+    const direction = getDirection(offset);
+    directions.set(cellToString(currentCell), direction);
+  }
+  return directions;
+}
+
+// Get the indexes of each cell in the entire path (which is displayed if finding multiple goals)
+export function getIndexes(path: CellCoordinates[]): Map<string, number[]> {
+  const indexes = new Map();
+  for (let i = 0; i < path.length; i++) {
+    const currentCell = path[i];
+    const key = cellToString(currentCell);
+    if (indexes.has(key)) {
+      indexes.get(key)!.push(i);
+    } else {
+      indexes.set(key, [i]);
+    }
+  }
+  return indexes;
 }

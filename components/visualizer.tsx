@@ -8,7 +8,6 @@ import {
   CellType,
   Algorithm,
   CellCoordinates,
-  Direction,
   Delay,
 } from "@/types";
 import {
@@ -18,7 +17,7 @@ import {
   findStartAndGoals,
   resetVisualization,
 } from "@/gridFunctions";
-import { cellToString, delay, stringToCell } from "@/utils";
+import { cellToString, delay } from "@/utils";
 import { findPath } from "@/algorithms";
 import ControlPanel from "./control-panel";
 
@@ -30,8 +29,9 @@ export default function Visualizer({
   // State declarations for grid, algorithm, visualization progress, and user interactions
   const [grid, setGrid] = useState<CellType[][]>(initialGrid);
   const [algorithm, setAlgorithm] = useState<Algorithm>(Algorithm.AStar);
+  const [findAllGoals, setFindAllGoals] = useState(false);
   const [nodesCreated, setNodesCreated] = useState<Set<string>>(new Set());
-  const [path, setPath] = useState(new Map());
+  const [path, setPath] = useState<CellCoordinates[]>([]);
 
   const [drawType, setDrawType] = useState<CellType | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -50,7 +50,7 @@ export default function Visualizer({
 
     setIsVisualizing(true);
     try {
-      const steps = findPath(currentGrid, algorithm);
+      const steps = findPath(currentGrid, algorithm, findAllGoals);
       let step = steps.next();
       while (!step.done) {
         if (Array.isArray(step.value)) {
@@ -129,18 +129,17 @@ export default function Visualizer({
     });
   }
 
-  function traceback(path: Map<string, Direction>) {
+  function traceback(path: CellCoordinates[]) {
     setGrid((previousGrid) => {
       const newGrid = [...previousGrid];
-      path.forEach((_, cellString) => {
-        const { row, col } = stringToCell(cellString);
+      for (const { row, col } of path) {
         if (
-          grid[row][col] !== CellType.Start &&
-          grid[row][col] !== CellType.Goal
+          newGrid[row][col] !== CellType.Start &&
+          newGrid[row][col] !== CellType.Goal
         ) {
           newGrid[row][col] = CellType.Path;
         }
-      });
+      }
       return newGrid;
     });
     setPath(path);
@@ -184,7 +183,7 @@ export default function Visualizer({
   // Functions to reset visualization state
   function resetResults() {
     setNodesCreated(new Set());
-    setPath(new Map());
+    setPath([]);
   }
 
   function resetVisualizaton() {
@@ -238,6 +237,7 @@ export default function Visualizer({
       <Grid
         grid={grid}
         path={path}
+        findAllGoals={findAllGoals}
         drawType={drawType}
         onMouseDown={handleMouseDown}
         onMouseOver={handleMouseOver}
@@ -256,8 +256,10 @@ export default function Visualizer({
         visualize={visualize}
         isVisualizing={isVisualizing}
         resetVisualization={resetVisualizaton}
+        findAllGoals={findAllGoals}
+        setFindAllGoals={setFindAllGoals}
         numNodesCreated={nodesCreated.size}
-        pathLength={path.size}
+        pathLength={path.length}
       />
     </div>
   );

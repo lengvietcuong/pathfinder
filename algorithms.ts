@@ -30,8 +30,39 @@ const ALGORITHMS = {
 };
 
 // Main function to find path using the specified algorithm
-export function findPath(grid: CellType[][], algorithm: Algorithm) {
-  return ALGORITHMS[algorithm](grid);
+export function* findPath(
+  grid: CellType[][],
+  algorithm: Algorithm,
+  findAllGoals: boolean
+) {
+  const search = ALGORITHMS[algorithm];
+  if (!findAllGoals) {
+    const path = yield* search(grid);
+    return path;
+  }
+
+  // If finding all goals, search for each goal one by one
+  // After finding a goal, erase the previous start and set the new start to be the goal just found
+  const { goals } = findStartAndGoals(grid);
+  const completePath: CellCoordinates[] = [];
+  let previousStart: CellCoordinates | null = null;
+  let previousGoal: CellCoordinates | null = null;
+  for (let i = 0; i < goals.length; i++) {
+    const newGrid = [...grid.map((row) => [...row])];
+
+    if (previousStart !== null && previousGoal !== null) {
+      newGrid[previousStart.row][previousStart.col] = CellType.Unexplored;
+      newGrid[previousGoal.row][previousGoal.col] = CellType.Start;
+    }
+
+    const path = yield* search(newGrid);
+    completePath.push(...path);
+
+    previousStart = path[0];
+    previousGoal = path[path.length - 1];
+  }
+
+  return completePath;
 }
 
 // Helper function to get valid moves from a given cell
@@ -86,7 +117,7 @@ function* depthFirstSearch(grid: CellType[][]) {
     stack.push(...newMoves);
   }
 
-  throw new Error("Could not find a path to the goal");
+  throw new Error("Could not find any path to a goal");
 }
 
 // Breadth-First Search algorithm
@@ -123,7 +154,7 @@ function* breadthFirstSearch(grid: CellType[][]) {
     yield newMoves.map((move) => move.destination);
   }
 
-  throw new Error("Could not find a path to the goal");
+  throw new Error("Could not find any path to a goal");
 }
 
 // Greedy Best-First Search algorithm
@@ -163,7 +194,7 @@ function* greedyBestFirstSearch(grid: CellType[][]) {
     yield newMoves.map((move) => move.destination);
   }
 
-  throw new Error("Could not find a path to the goal");
+  throw new Error("Could not find any path to a goal");
 }
 
 // A* Search algorithm
@@ -216,7 +247,7 @@ function* aStar(grid: CellType[][]) {
     yield newMoves.map((move) => move.destination);
   }
 
-  throw new Error("Could not find a path to the goal");
+  throw new Error("Could not find any path to a goal");
 }
 
 // Open Search algorithm (prioritizes cells with fewer surrounding walls)
@@ -257,7 +288,7 @@ function* openSearch(grid: CellType[][]) {
     yield newMoves.map((move) => move.destination);
   }
 
-  throw new Error("Could not find a path to the goal");
+  throw new Error("Could not find any path to a goal");
 }
 
 // Straight Line A* algorithm (considers angle to goal in heuristic)
@@ -314,5 +345,5 @@ function* straightLineAStar(grid: CellType[][]) {
     yield newMoves.map((move) => move.destination);
   }
 
-  throw new Error("Could not find a path to the goal");
+  throw new Error("Could not find any path to a goal");
 }
