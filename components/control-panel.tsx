@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch"
+import { Switch } from "@/components/ui/switch";
 import UploadButton from "./upload-button";
 import DrawButtons from "./draw-buttons";
 import DelaySelection from "./delay-selection";
@@ -18,22 +18,22 @@ interface ControlPanelProps {
   randomizeGrid: () => void;
   clearGrid: () => void;
   onFileUpload: (fileContents: string) => void;
-  
+
   // Drawing controls
   drawType: CellType | null;
   setDrawType: (drawType: CellType | null) => void;
-  
+
   // Algorithm and visualization settings
   algorithm: Algorithm;
   setAlgorithm: (algorithm: Algorithm) => void;
   delay: Delay;
   onDelayChange: (delay: Delay) => void;
-  
+
   // Visualization controls and state
   visualize: () => void;
   isVisualizing: boolean;
   resetVisualization: () => void;
-  
+
   // Results display
   numNodesCreated: number;
   pathLength: number;
@@ -71,7 +71,11 @@ export default function Component({
       <div className="flex flex-col gap-2.5">
         {/* Multiple goals checkbox and randomize button */}
         <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between px-3 py-2 border rounded-md">
+          <div
+            className={`flex items-center justify-between px-3 py-2 border rounded-md ${
+              isVisualizing ? "opacity-50" : ""
+            }`}
+          >
             <Label htmlFor="randomize-with-multiple-goals">
               Randomize multiple goals
             </Label>
@@ -92,7 +96,7 @@ export default function Component({
             Randomize
           </Button>
         </div>
-        
+
         {/* Grid manipulation buttons */}
         <UploadButton
           className="flex-1"
@@ -151,9 +155,9 @@ export default function Component({
 // Component to display algorithm execution results
 // Shows number of cells explored and final path length
 interface ResultProps {
-  numNodesCreated: number;  // Total cells visited during search
-  pathLength: number;       // Length of found path (0 if no path found)
-  isVisualizing: boolean;   // Whether algorithm is currently running
+  numNodesCreated: number; // Total cells visited during search
+  pathLength: number; // Length of found path (0 if no path found)
+  isVisualizing: boolean; // Whether algorithm is currently running
 }
 
 function Result({ numNodesCreated, pathLength, isVisualizing }: ResultProps) {
@@ -170,7 +174,7 @@ function Result({ numNodesCreated, pathLength, isVisualizing }: ResultProps) {
         </div>
         {/* Display path length (only when visualization is complete) */}
         <div className="flex-1">
-          {!isVisualizing && (
+          {(!isVisualizing || pathLength > 0) && (
             <>
               <h3 className="text-sm font-medium text-muted-foreground">
                 Path length

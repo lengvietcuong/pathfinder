@@ -59,13 +59,18 @@ export function createRandomGrid(
     1
   );
 
-  // Optionally place more goal cells in the remaining corners
+  // Optionally place more goal cells
   if (hasMultipleGoals) {
     const goal2 = corners.pop()!;
     grid[goal2.row][goal2.col] = CellType.Goal;
+    // There may be a goal in the final corner
     if (Math.random() < 0.5) {
       const goal3 = corners.pop()!;
       grid[goal3.row][goal3.col] = CellType.Goal;
+    }
+    // There may be a goal in the center
+    if (Math.random() < 0.5) {
+      grid[Math.floor(numRows / 2)][Math.floor(numCols / 2)] = CellType.Goal;
     }
   }
 
@@ -186,4 +191,20 @@ export function resetVisualization(grid: CellType[][]) {
       preservedTypes.includes(cell) ? cell : CellType.Unexplored
     )
   );
+}
+
+export function markCells(
+  cells: CellCoordinates[],
+  cellType: CellType,
+  grid: CellType[][]
+) {
+  for (const cell of cells) {
+    const { row, col } = cell;
+    if (
+      grid[row][col] !== CellType.Start &&
+      grid[row][col] !== CellType.Goal
+    ) {
+      grid[row][col] = cellType;
+    }
+  }
 }

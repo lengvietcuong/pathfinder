@@ -17,6 +17,7 @@ import {
   parseGrid,
   findStartAndGoals,
   resetVisualization,
+  markCells
 } from "@/gridFunctions";
 import { cellToString, delay } from "@/utils";
 import { findPath } from "@/algorithms";
@@ -80,13 +81,14 @@ export default function Visualizer({
       if (value.type === "grid") {
         // A goal is found -> create new page (new grid) for the next goal
         await delay(1_000); // Delay for 1 second for the user to see the path found
+
         setGrids((prevGrids) => [...prevGrids, value.grid]);
         setSearchResults((prevResults) => [
           ...prevResults,
           { nodesCreated: new Set(), path: [] },
         ]);
         setCurrentPageIndex((prevIndex) => prevIndex + 1);
-        
+
         currentGrid = value.grid;
         currentSearchResult = { nodesCreated: new Set(), path: [] };
 
@@ -151,23 +153,6 @@ export default function Visualizer({
       });
       return false;
     }
-  }
-
-  function markCells(
-    cells: CellCoordinates[],
-    cellType: CellType,
-    grid: CellType[][]
-  ) {
-    for (const cell of cells) {
-      const { row, col } = cell;
-      if (
-        grid[row][col] !== CellType.Start &&
-        grid[row][col] !== CellType.Goal
-      ) {
-        grid[row][col] = cellType;
-      }
-    }
-    return grid;
   }
 
   // Updates the grid and tracking data when cells are marked during visualization
