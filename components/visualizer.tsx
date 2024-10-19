@@ -282,7 +282,7 @@ export default function Visualizer({
             onMouseUp={() => setIsDrawing(false)}
           />
           <Pagination
-            className={`mt-4 ${grids.length === 1 ? "opacity-0" : ""}`}
+            className={`mt-4 cursor-pointer ${grids.length === 1 ? "opacity-0" : ""}`}
           >
             <PaginationContent>
               <PaginationItem>
