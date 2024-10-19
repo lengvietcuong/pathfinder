@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch"
 import UploadButton from "./upload-button";
 import DrawButtons from "./draw-buttons";
 import DelaySelection from "./delay-selection";
@@ -71,16 +71,16 @@ export default function Component({
       <div className="flex flex-col gap-2.5">
         {/* Multiple goals checkbox and randomize button */}
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <Checkbox
+          <div className="flex items-center justify-between px-3 py-2 border rounded-md">
+            <Label htmlFor="randomize-with-multiple-goals">
+              Randomize multiple goals
+            </Label>
+            <Switch
               id="randomize-with-multiple-goals"
               checked={randomizeWithMultipleGoals}
               onCheckedChange={setRandomizeWithMultipleGoals}
               disabled={isVisualizing}
             />
-            <Label htmlFor="randomize-with-multiple-goals">
-              Randomize with multiple goals
-            </Label>
           </div>
           <Button
             className="flex-1"
