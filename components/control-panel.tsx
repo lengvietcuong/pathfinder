@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import UploadButton from "./upload-button";
 import DrawButtons from "./draw-buttons";
 import DelaySelection from "./delay-selection";
@@ -9,47 +9,58 @@ import { HiOutlineSparkles as SparklesIcon } from "react-icons/hi";
 import { PiPlayBold as PlayIcon } from "react-icons/pi";
 import { Algorithm, CellType, Delay } from "@/types";
 
-// Define props for the ControlPanel component
+// Props interface for the main control panel component
+// Handles grid manipulation, algorithm selection, and visualization controls
 interface ControlPanelProps {
+  // Grid generation controls
+  randomizeWithMultipleGoals: boolean;
+  setRandomizeWithMultipleGoals: (randomizeWithMultipleGoals: boolean) => void;
   randomizeGrid: () => void;
   clearGrid: () => void;
   onFileUpload: (fileContents: string) => void;
+  
+  // Drawing controls
   drawType: CellType | null;
   setDrawType: (drawType: CellType | null) => void;
+  
+  // Algorithm and visualization settings
   algorithm: Algorithm;
-  onAlgorithmChange: (algorithm: Algorithm) => void;
+  setAlgorithm: (algorithm: Algorithm) => void;
   delay: Delay;
   onDelayChange: (delay: Delay) => void;
+  
+  // Visualization controls and state
   visualize: () => void;
   isVisualizing: boolean;
   resetVisualization: () => void;
-  findAllGoals: boolean;
-  setFindAllGoals: (findAllGoals: boolean) => void;
+  
+  // Results display
   numNodesCreated: number;
   pathLength: number;
 }
 
 export default function Component({
+  randomizeWithMultipleGoals,
+  setRandomizeWithMultipleGoals,
   randomizeGrid,
   clearGrid,
   onFileUpload,
   drawType,
   setDrawType,
   algorithm,
-  onAlgorithmChange,
+  setAlgorithm,
   delay,
   onDelayChange,
   visualize,
   isVisualizing,
   resetVisualization,
-  findAllGoals,
-  setFindAllGoals,
   numNodesCreated,
   pathLength,
 }: ControlPanelProps) {
   return (
+    // Main control panel container with card styling
     <div className="border bg-card py-4 px-6 rounded-lg min-w-80">
-      {/* Grid setup section */}
+      {/* Grid Setup Section */}
       <h2
         className={`mb-3 md:text-lg font-semibold ${
           isVisualizing ? "text-muted-foreground" : ""
@@ -57,17 +68,32 @@ export default function Component({
       >
         Setup grid
       </h2>
-      <div className="flex flex-col sm:flex-row gap-2.5 lg:flex-col">
-        {/* Buttons for grid manipulation */}
-        <Button
-          className="flex-1"
-          onClick={randomizeGrid}
-          disabled={isVisualizing}
-          variant="secondary"
-        >
-          <SparklesIcon className="mr-2 size-4" />
-          Randomize
-        </Button>
+      <div className="flex flex-col gap-2.5">
+        {/* Multiple goals checkbox and randomize button */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="randomize-with-multiple-goals"
+              checked={randomizeWithMultipleGoals}
+              onCheckedChange={setRandomizeWithMultipleGoals}
+              disabled={isVisualizing}
+            />
+            <Label htmlFor="randomize-with-multiple-goals">
+              Randomize with multiple goals
+            </Label>
+          </div>
+          <Button
+            className="flex-1"
+            onClick={randomizeGrid}
+            disabled={isVisualizing}
+            variant="secondary"
+          >
+            <SparklesIcon className="mr-2 size-4" />
+            Randomize
+          </Button>
+        </div>
+        
+        {/* Grid manipulation buttons */}
         <UploadButton
           className="flex-1"
           disabled={isVisualizing}
@@ -83,35 +109,22 @@ export default function Component({
         />
       </div>
 
-      {/* Algorithm execution section */}
+      {/* Algorithm Configuration Section */}
       <h2 className="lg:mt-8 mt-6 mb-3 md:text-lg font-semibold">
         Run algorithm
       </h2>
-      <div className="flex items-center lg:flex-col gap-2.5">
-        <AlgorithmSelection
-          className="flex-1"
-          disabled={isVisualizing}
-          algorithm={algorithm}
-          onAlgorithmChange={onAlgorithmChange}
-        />
-        <div
-          className={`flex-1 lg:flex-initial lg:w-full flex items-center justify-between border rounded-md px-3 py-2 ${
-            isVisualizing ? "opacity-50" : ""
-          }`}
-        >
-          <Label htmlFor="find-all-goals">Find all goals</Label>
-          <Switch
-            id="find-all-goals"
-            checked={findAllGoals}
-            onCheckedChange={(checked: boolean) => {
-              resetVisualization();
-              setFindAllGoals(checked);
-            }}
-            disabled={isVisualizing}
-          />
-        </div>
-      </div>
+      {/* Algorithm dropdown with automatic visualization reset on change */}
+      <AlgorithmSelection
+        className="flex-1"
+        disabled={isVisualizing}
+        algorithm={algorithm}
+        onAlgorithmChange={(algorithm: Algorithm) => {
+          resetVisualization();
+          setAlgorithm(algorithm);
+        }}
+      />
       <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 mt-2.5">
+        {/* Visualization speed control and start button */}
         <DelaySelection
           delay={delay}
           onDelayChange={onDelayChange}
@@ -123,7 +136,7 @@ export default function Component({
         </Button>
       </div>
 
-      {/* Display results if available */}
+      {/* Results Section - Only shown when algorithm has been run */}
       {numNodesCreated > 0 && (
         <Result
           numNodesCreated={numNodesCreated}
@@ -135,11 +148,12 @@ export default function Component({
   );
 }
 
-// Component to display algorithm results
+// Component to display algorithm execution results
+// Shows number of cells explored and final path length
 interface ResultProps {
-  numNodesCreated: number;
-  pathLength: number;
-  isVisualizing: boolean;
+  numNodesCreated: number;  // Total cells visited during search
+  pathLength: number;       // Length of found path (0 if no path found)
+  isVisualizing: boolean;   // Whether algorithm is currently running
 }
 
 function Result({ numNodesCreated, pathLength, isVisualizing }: ResultProps) {
@@ -147,12 +161,14 @@ function Result({ numNodesCreated, pathLength, isVisualizing }: ResultProps) {
     <>
       <h2 className="lg:mt-8 mt-6 mb-3 md:text-lg font-semibold">Result</h2>
       <div className="flex gap-4">
+        {/* Display number of explored cells */}
         <div className="flex-1">
           <h3 className="text-sm font-medium text-muted-foreground">
             Cells explored
           </h3>
           <p className="mt-0.5 text-xl font-medium">{numNodesCreated}</p>
         </div>
+        {/* Display path length (only when visualization is complete) */}
         <div className="flex-1">
           {!isVisualizing && (
             <>

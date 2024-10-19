@@ -2,12 +2,11 @@ import { CellType, CellCoordinates, Direction } from "@/types";
 import { PiMapPinBold as LocationIcon } from "react-icons/pi";
 import { PiFlagPennantBold as FlagIcon } from "react-icons/pi";
 import { IconType } from "react-icons/lib";
-import { getDirections, getIndexes, cellToString } from "@/utils";
+import { getDirections, cellToString } from "@/utils";
 
 interface GridProps {
   grid: CellType[][];
   path: CellCoordinates[];
-  findAllGoals: boolean;
   drawType: CellType | null;
   onMouseDown: (row: number, col: number) => void;
   onMouseOver: (row: number, col: number) => void;
@@ -57,8 +56,7 @@ interface CellProps {
   onMouseOver: (row: number, col: number) => void;
   onMouseUp: () => void;
   cellType: CellType;
-  direction?: Direction; // This is used to display the direction bar if only needs to find 1 goal
-  indexes?: number[]; // This is used to index each cell if finding multiple goals
+  direction: Direction | undefined;
 }
 
 function Cell({
@@ -71,7 +69,6 @@ function Cell({
   onMouseUp,
   cellType,
   direction,
-  indexes,
 }: CellProps) {
   let CellIcon: IconType | null = null;
   if (cellType === CellType.Start) {
@@ -87,7 +84,7 @@ function Cell({
           device === "desktop" ? "hidden lg:grid" : "grid lg:hidden";
         const size =
           device === "desktop"
-            ? `min(calc(65svw / ${numCols}), calc(90svh / ${numRows}))`
+            ? `min(calc(65svw / ${numCols}), calc(80svh / ${numRows}))`
             : `min(calc(90svw / ${numCols}), calc(90svh / ${numRows}))`;
 
         return (
@@ -102,23 +99,14 @@ function Cell({
             onMouseOver={() => onMouseOver(row, col)}
             onMouseUp={onMouseUp}
           >
-            {/* Display the cell icon if there are no indexes to be shown */}
-            {CellIcon !== null && indexes === undefined && <CellIcon className="size-2/3" />}
+            {/* Display the cell icon */}
+            {CellIcon !== null && <CellIcon className="size-2/3" />}
 
-            {/* Display the direction bar if only needs to find 1 goal */}
+            {/* Display the direction bar */}
             {direction !== undefined && (
               <div
                 className={`z-10 absolute bg-foreground ${DIRECTION_BAR[direction]}`}
               />
-            )}
-
-            {/* Display the indexes if finding multiple goals */}
-            {indexes !== undefined && (
-              <div className="z-10 absolute text-[10px] text-center">
-                {indexes.map((index) => (
-                  <p key={index}>{index}</p>
-                ))}
-              </div>
             )}
           </div>
         );
@@ -130,7 +118,6 @@ function Cell({
 export default function Grid({
   grid,
   path,
-  findAllGoals,
   drawType,
   onMouseDown,
   onMouseOver,
@@ -142,10 +129,7 @@ export default function Grid({
 
   const cursorIcon =
     drawType !== null ? CURSOR_ICON[drawType] : "cursor-default"; // Set the cursor icon
-  // If finding a single goal, display a direction bar for each cell
-  // If finding multiple goals, display the indexes of each cell
-  const directions = findAllGoals ? null : getDirections(path);
-  const indexes = findAllGoals ? getIndexes(path) : null;
+  const directions = getDirections(path);
 
   return (
     <div
@@ -166,7 +150,6 @@ export default function Grid({
             onMouseUp={onMouseUp}
             cellType={grid[rowIndex][colIndex]}
             direction={directions?.get(cellToString({ row: rowIndex, col: colIndex }))}
-            indexes={indexes?.get(cellToString({ row: rowIndex, col: colIndex }))}
           />
         ))
       )}

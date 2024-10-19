@@ -21,7 +21,11 @@ export function createEmptyGrid(
 }
 
 // Generates a random grid with walls and places start/goal cells at random corners
-export function createRandomGrid(numRows: number, numCols: number) {
+export function createRandomGrid(
+  numRows: number,
+  numCols: number,
+  hasMultipleGoals: boolean
+) {
   const grid = new Array(numRows);
   // Fill each cell with either 'Wall' or 'Unexplored', with a 20% chance of being a wall
   for (let row = 0; row < numRows; row++) {
@@ -47,9 +51,16 @@ export function createRandomGrid(numRows: number, numCols: number) {
   // Place the first goal diagonally opposite the start
   const goal1 = { row: numRows - 1 - start.row, col: numCols - 1 - start.col };
   grid[goal1.row][goal1.col] = CellType.Goal;
+  // Remove the first goal from the corners array
+  corners.splice(
+    corners.findIndex(
+      (corner) => corner.row === goal1.row && corner.col === goal1.col
+    ),
+    1
+  );
 
   // Optionally place more goal cells in the remaining corners
-  if (Math.random() < 0.25) {
+  if (hasMultipleGoals) {
     const goal2 = corners.pop()!;
     grid[goal2.row][goal2.col] = CellType.Goal;
     if (Math.random() < 0.5) {

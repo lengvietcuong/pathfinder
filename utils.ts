@@ -98,18 +98,3 @@ export function getDirections(path: CellCoordinates[]): Map<string, Direction> {
   }
   return directions;
 }
-
-// Get the indexes of each cell in the entire path (which is displayed if finding multiple goals)
-export function getIndexes(path: CellCoordinates[]): Map<string, number[]> {
-  const indexes = new Map();
-  for (let i = 0; i < path.length; i++) {
-    const currentCell = path[i];
-    const key = cellToString(currentCell);
-    if (indexes.has(key)) {
-      indexes.get(key)!.push(i);
-    } else {
-      indexes.set(key, [i]);
-    }
-  }
-  return indexes;
-}

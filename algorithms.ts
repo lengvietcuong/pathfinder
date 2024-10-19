@@ -4,6 +4,7 @@ import {
   Move,
   Algorithm,
   DIRECTION_TO_OFFSET,
+  SearchStep,
 } from "@/types";
 import {
   isInsideGrid,
@@ -17,6 +18,7 @@ import {
   calculateAngle,
   reconstructPath,
 } from "@/utils";
+import { resetVisualization } from "@/gridFunctions";
 import { Queue, MinPriorityQueue } from "data-structure-typed";
 
 // Map of algorithm names to their corresponding functions
@@ -29,43 +31,42 @@ const ALGORITHMS = {
   [Algorithm.StraightLineAStar]: straightLineAStar,
 };
 
-// Main function to find path using the specified algorithm
+// Main generator function that orchestrates pathfinding between multiple goals
+// Yields intermediate search steps for visualization purposes
 export function* findPath(
   grid: CellType[][],
   algorithm: Algorithm,
-  findAllGoals: boolean
 ) {
-  const search = ALGORITHMS[algorithm];
-  if (!findAllGoals) {
-    const path = yield* search(grid);
-    return path;
-  }
-
-  // If finding all goals, search for each goal one by one
-  // After finding a goal, erase the previous start and set the new start to be the goal just found
   const { goals } = findStartAndGoals(grid);
-  const completePath: CellCoordinates[] = [];
+  const search = ALGORITHMS[algorithm];
+  // Search for each goal one by one
+  // After finding a goal, erase the previous start and set the new start to be the goal just found
   let previousStart: CellCoordinates | null = null;
   let previousGoal: CellCoordinates | null = null;
-  for (let i = 0; i < goals.length; i++) {
-    const newGrid = [...grid.map((row) => [...row])];
-
-    if (previousStart !== null && previousGoal !== null) {
-      newGrid[previousStart.row][previousStart.col] = CellType.Unexplored;
-      newGrid[previousGoal.row][previousGoal.col] = CellType.Start;
+  try {
+    for (let i = 0; i < goals.length; i++) {
+      grid = resetVisualization(grid);
+  
+      if (previousStart !== null && previousGoal !== null) {
+        grid[previousStart.row][previousStart.col] = CellType.Unexplored;
+        grid[previousGoal.row][previousGoal.col] = CellType.Start;
+        yield { type: "grid", grid } as SearchStep;
+      }
+  
+      const result = yield* search(grid);
+      yield result;
+  
+      const path = "path" in result ? result.path : [];
+      previousStart = path[0];
+      previousGoal = path[path.length - 1];
     }
-
-    const path = yield* search(newGrid);
-    completePath.push(...path);
-
-    previousStart = path[0];
-    previousGoal = path[path.length - 1];
+  } catch (error) {
+    // Cannot reach a goal after exploring the entire grid
   }
-
-  return completePath;
 }
 
-// Helper function to get valid moves from a given cell
+// Returns valid moves from a given cell by checking all four directions
+// A move is valid if it's within grid bounds, not a wall, and hasn't been visited
 function getValidMoves(
   source: CellCoordinates,
   grid: CellType[][],
@@ -77,7 +78,6 @@ function getValidMoves(
     const col = source.col + dCol;
     const destination: CellCoordinates = { row, col };
 
-    // Check if the neighbor is inside the grid, not a wall, and hasn't been visited
     if (
       isInsideGrid(destination, grid) &&
       grid[row][col] !== CellType.Wall &&
@@ -89,7 +89,8 @@ function getValidMoves(
   return validMoves;
 }
 
-// Depth-First Search algorithm
+// Classic DFS implementation using a stack
+// Explores deeply along each branch before backtracking
 function* depthFirstSearch(grid: CellType[][]) {
   const { start } = findStartAndGoals(grid);
   const stack = [
@@ -98,6 +99,7 @@ function* depthFirstSearch(grid: CellType[][]) {
       destination: start,
     },
   ];
+  // cameFrom tracks the path and prevents cycles
   const cameFrom = new Map<string, CellCoordinates>();
 
   while (stack.length > 0) {
@@ -105,22 +107,29 @@ function* depthFirstSearch(grid: CellType[][]) {
     if (cameFrom.has(cellToString(destination))) continue;
 
     cameFrom.set(cellToString(destination), source);
-    yield destination;
+    yield { type: "explore", cell: destination } as SearchStep;
 
     if (grid[destination.row][destination.col] === CellType.Goal) {
-      return reconstructPath(start, destination, cameFrom);
+      return {
+        type: "path",
+        path: reconstructPath(start, destination, cameFrom),
+      } as SearchStep;
     }
 
-    // To maintain the search order U -> L -> D -> R with the stack's LIFO nature, add moves in the order R -> D -> L -> U
+    // Reverse moves to maintain ULDR search order with stack's LIFO nature
     const newMoves = getValidMoves(destination, grid, cameFrom).reverse();
-    yield newMoves.map((move) => move.destination);
+    yield {
+      type: "frontier",
+      cells: newMoves.map((move) => move.destination),
+    } as SearchStep;
     stack.push(...newMoves);
   }
 
   throw new Error("Could not find any path to a goal");
 }
 
-// Breadth-First Search algorithm
+// BFS implementation using a queue for level-order traversal
+// Guarantees shortest path in terms of number of steps
 function* breadthFirstSearch(grid: CellType[][]) {
   const { start } = findStartAndGoals(grid);
   const queue = new Queue<{
@@ -138,10 +147,13 @@ function* breadthFirstSearch(grid: CellType[][]) {
     if (cameFrom.has(cellToString(destination))) continue;
 
     cameFrom.set(cellToString(destination), source);
-    yield destination;
+    yield { type: "explore", cell: destination } as SearchStep;
 
     if (grid[destination.row][destination.col] === CellType.Goal) {
-      return reconstructPath(start, destination, cameFrom);
+      return {
+        type: "path",
+        path: reconstructPath(start, destination, cameFrom),
+      } as SearchStep;
     }
 
     const newMoves = getValidMoves(destination, grid, cameFrom);
@@ -151,13 +163,17 @@ function* breadthFirstSearch(grid: CellType[][]) {
         destination: newMove.destination,
       });
     }
-    yield newMoves.map((move) => move.destination);
+    yield {
+      type: "frontier",
+      cells: newMoves.map((move) => move.destination),
+    } as SearchStep;
   }
 
   throw new Error("Could not find any path to a goal");
 }
 
-// Greedy Best-First Search algorithm
+// Greedy Best-First Search uses a priority queue to always explore the cell closest to goal
+// Fast but doesn't guarantee shortest path
 function* greedyBestFirstSearch(grid: CellType[][]) {
   const { start, goals } = findStartAndGoals(grid);
   const heap = new MinPriorityQueue<Move>([], {
@@ -175,14 +191,18 @@ function* greedyBestFirstSearch(grid: CellType[][]) {
     if (cameFrom.has(cellToString(destination))) continue;
 
     cameFrom.set(cellToString(destination), source);
-    yield destination;
+    yield { type: "explore", cell: destination } as SearchStep;
 
     if (grid[destination.row][destination.col] === CellType.Goal) {
-      return reconstructPath(start, destination, cameFrom);
+      return {
+        type: "path",
+        path: reconstructPath(start, destination, cameFrom),
+      } as SearchStep;
     }
 
     const newMoves = getValidMoves(destination, grid, cameFrom);
     for (const newMove of newMoves) {
+      // Priority is just the distance to nearest goal (heuristic only, no path cost)
       const priority = nearestGoal(newMove.destination, goals).distance;
       heap.add({
         source: destination,
@@ -191,13 +211,17 @@ function* greedyBestFirstSearch(grid: CellType[][]) {
         index: index++,
       });
     }
-    yield newMoves.map((move) => move.destination);
+    yield {
+      type: "frontier",
+      cells: newMoves.map((move) => move.destination),
+    } as SearchStep;
   }
 
   throw new Error("Could not find any path to a goal");
 }
 
-// A* Search algorithm
+// A* combines path cost and heuristic for optimal pathfinding
+// Guarantees shortest path while typically exploring fewer cells than BFS
 function* aStar(grid: CellType[][]) {
   const { start, goals } = findStartAndGoals(grid);
   const heap = new MinPriorityQueue<Move>([], {
@@ -208,6 +232,7 @@ function* aStar(grid: CellType[][]) {
     destination: start,
   });
   const cameFrom = new Map<string, CellCoordinates>();
+  // Track number of steps to reach each cell for path cost calculation
   const numSteps = new Map<string, number>();
   numSteps.set(cellToString(start), 0);
   let index = 0;
@@ -217,17 +242,19 @@ function* aStar(grid: CellType[][]) {
     if (cameFrom.has(cellToString(destination))) continue;
 
     cameFrom.set(cellToString(destination), source);
-    yield destination;
+    yield { type: "explore", cell: destination } as SearchStep;
 
     if (grid[destination.row][destination.col] === CellType.Goal) {
-      return reconstructPath(start, destination, cameFrom);
+      return {
+        type: "path",
+        path: reconstructPath(start, destination, cameFrom),
+      } as SearchStep;
     }
 
     const newMoves = getValidMoves(destination, grid, cameFrom);
     for (const newMove of newMoves) {
       const numStepsSoFar = numSteps.get(cellToString(destination))!;
       const numStepsToNeighbor = numStepsSoFar + 1;
-      // Skip the move if a shorter path to its destination cell is already found
       if (
         numSteps.has(cellToString(newMove.destination)) &&
         numStepsToNeighbor >= numSteps.get(cellToString(newMove.destination))!
@@ -235,6 +262,7 @@ function* aStar(grid: CellType[][]) {
         continue;
 
       numSteps.set(cellToString(newMove.destination), numStepsToNeighbor);
+      // Priority combines actual path cost (numStepsToNeighbor) with heuristic (distance to goal)
       const priority =
         numStepsToNeighbor + nearestGoal(newMove.destination, goals).distance;
       heap.add({
@@ -244,13 +272,17 @@ function* aStar(grid: CellType[][]) {
         index: index++,
       });
     }
-    yield newMoves.map((move) => move.destination);
+    yield {
+      type: "frontier",
+      cells: newMoves.map((move) => move.destination),
+    } as SearchStep;
   }
 
   throw new Error("Could not find any path to a goal");
 }
 
-// Open Search algorithm (prioritizes cells with fewer surrounding walls)
+// OpenSearch prioritizes cells with fewer surrounding walls
+// Good for finding paths through open areas of the grid
 function* openSearch(grid: CellType[][]) {
   const { start } = findStartAndGoals(grid);
   const heap = new MinPriorityQueue<Move>([], {
@@ -268,14 +300,18 @@ function* openSearch(grid: CellType[][]) {
     if (cameFrom.has(cellToString(destination))) continue;
 
     cameFrom.set(cellToString(destination), source);
-    yield destination;
+    yield { type: "explore", cell: destination } as SearchStep;
 
     if (grid[destination.row][destination.col] === CellType.Goal) {
-      return reconstructPath(start, destination, cameFrom);
+      return {
+        type: "path",
+        path: reconstructPath(start, destination, cameFrom),
+      } as SearchStep;
     }
 
     const newMoves = getValidMoves(destination, grid, cameFrom);
     for (const newMove of newMoves) {
+      // Priority is determined by number of surrounding walls - fewer is better
       const priority = countSurroundingWalls(newMove.destination, grid);
       heap.add({
         source: destination,
@@ -285,13 +321,17 @@ function* openSearch(grid: CellType[][]) {
       });
     }
     heap.print();
-    yield newMoves.map((move) => move.destination);
+    yield {
+      type: "frontier",
+      cells: newMoves.map((move) => move.destination),
+    } as SearchStep;
   }
 
   throw new Error("Could not find any path to a goal");
 }
 
-// Straight Line A* algorithm (considers angle to goal in heuristic)
+// A* variant that considers angle to goal in its heuristic
+// Tends to find straighter paths compared to regular A*
 function* straightLineAStar(grid: CellType[][]) {
   const { start, goals } = findStartAndGoals(grid);
   const heap = new MinPriorityQueue<Move>([], {
@@ -311,10 +351,13 @@ function* straightLineAStar(grid: CellType[][]) {
     if (cameFrom.has(cellToString(destination))) continue;
 
     cameFrom.set(cellToString(destination), source);
-    yield destination;
+    yield { type: "explore", cell: destination } as SearchStep;
 
     if (grid[destination.row][destination.col] === CellType.Goal) {
-      return reconstructPath(start, destination, cameFrom);
+      return {
+        type: "path",
+        path: reconstructPath(start, destination, cameFrom),
+      } as SearchStep;
     }
 
     const newMoves = getValidMoves(destination, grid, cameFrom);
@@ -333,6 +376,7 @@ function* straightLineAStar(grid: CellType[][]) {
 
       numSteps.set(neighborString, numStepsToNeighbor);
       const { goal, distance } = nearestGoal(newMove.destination, goals);
+      // Include angle cost in priority calculation to favor straighter paths
       const angleCost = calculateAngle(newMove.destination, goal);
       const priority = numStepsToNeighbor + distance + angleCost;
       heap.add({
@@ -342,7 +386,10 @@ function* straightLineAStar(grid: CellType[][]) {
         index: index++,
       });
     }
-    yield newMoves.map((move) => move.destination);
+    yield {
+      type: "frontier",
+      cells: newMoves.map((move) => move.destination),
+    } as SearchStep;
   }
 
   throw new Error("Could not find any path to a goal");

@@ -36,7 +36,6 @@ export type CellCoordinates = {
   col: number;
 };
 
-
 export type Offset = {
   dRow: number;
   dCol: number;
@@ -55,3 +54,14 @@ export type Move = {
   priority?: number;
   index?: number;
 };
+
+export type SearchStep =
+  | { type: "grid"; grid: CellType[][] }
+  | { type: "explore"; cell: CellCoordinates }
+  | { type: "frontier"; cells: CellCoordinates[] }
+  | { type: "path"; path: CellCoordinates[] };
+
+export type SearchResult = {
+  path: CellCoordinates[];
+  nodesCreated: Set<string>;
+}
