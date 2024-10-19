@@ -117,8 +117,9 @@ export default function Visualizer({
 
       // Otherwise, update the grid all at once without re-renders for intermediate steps
       markCells(cells, cellType, currentGrid);
-      // Only re-render when a path is found
-      if (cellType === CellType.Path) {
+      // Only re-render when a path is found or the algorithm has terminated
+      const nextStep = steps.next();
+      if (cellType === CellType.Path || nextStep.done) {
         currentSearchResult.path = cells;
         setGrids((prevGrids) => [...prevGrids.slice(0, -1), currentGrid]);
         setSearchResults((prevResults) => [
@@ -131,7 +132,7 @@ export default function Visualizer({
         }
       }
 
-      step = steps.next();
+      step = nextStep;
     }
 
     setIsVisualizing(false);
@@ -340,7 +341,7 @@ export default function Visualizer({
           numNodesCreated={
             searchResults[currentPageIndex]?.nodesCreated.size || 0
           }
-          pathLength={searchResults[currentPageIndex]?.path.length || 0}
+          pathLength={searchResults[currentPageIndex]?.path.length - 1 || 0}
         />
       </div>
     </div>

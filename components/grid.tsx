@@ -141,6 +141,7 @@ export default function Grid({
       {grid.map((row, rowIndex) =>
         row.map((_, colIndex) => (
           <Cell
+            key={`${rowIndex}-${colIndex}`}
             row={rowIndex}
             col={colIndex}
             numRows={numRows}
